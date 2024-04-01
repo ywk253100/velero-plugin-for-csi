@@ -41,7 +41,6 @@ import (
 	velerov1api "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 	velerov2alpha1api "github.com/vmware-tanzu/velero/pkg/apis/velero/v2alpha1"
 	"github.com/vmware-tanzu/velero/pkg/label"
-	"github.com/vmware-tanzu/velero/pkg/util/podvolume"
 )
 
 const (
@@ -101,27 +100,6 @@ func Contains(slice []string, key string) bool {
 	return false
 }
 
-func IsPVCDefaultToFSBackup(pvcNamespace, pvcName string, podClient corev1client.PodsGetter, defaultVolumesToFsBackup bool) (bool, error) {
-	pods, err := GetPodsUsingPVC(pvcNamespace, pvcName, podClient)
-	if err != nil {
-		return false, errors.WithStack(err)
-	}
-
-	for _, p := range pods {
-		vols, _ := podvolume.GetVolumesByPod(&p, defaultVolumesToFsBackup, false)
-		if len(vols) > 0 {
-			volName, err := GetPodVolumeNameForPVC(p, pvcName)
-			if err != nil {
-				return false, err
-			}
-			if Contains(vols, volName) {
-				return true, nil
-			}
-		}
-	}
-
-	return false, nil
-}
 func GetVolumeSnapshotClass(provisioner string, backup *velerov1api.Backup, pvc *corev1api.PersistentVolumeClaim, log logrus.FieldLogger, snapshotClient snapshotter.SnapshotV1Interface) (*snapshotv1api.VolumeSnapshotClass, error) {
 	snapshotClasses, err := snapshotClient.VolumeSnapshotClasses().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {

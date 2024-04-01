@@ -106,11 +106,7 @@ func (p *PVCBackupItemAction) Execute(item runtime.Unstructured, backup *velerov
 	}
 
 	// Do nothing if FS uploader is used to backup this PV
-	isFSUploaderUsed, err := util.IsPVCDefaultToFSBackup(pvc.Namespace, pvc.Name, p.Client.CoreV1(), boolptr.IsSetToTrue(backup.Spec.DefaultVolumesToFsBackup))
-	if err != nil {
-		return nil, nil, "", nil, errors.WithStack(err)
-	}
-	if isFSUploaderUsed {
+	if boolptr.IsSetToTrue(backup.Spec.DefaultVolumesToFsBackup) {
 		p.Log.Infof("Skipping  PVC %s/%s, PV %s will be backed up using FS uploader", pvc.Namespace, pvc.Name, pv.Name)
 		return item, nil, "", nil, nil
 	}
